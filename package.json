@@ -1,0 +1,25 @@
+{
+  "name": "node-apis",
+  "version": "1.0.0",
+  "description": "API Endpoints",
+  "main": "main.js",
+  "dependencies": {
+    "MD5": "^1.2.2",
+    "firebase": "^2.2.7",
+    "request": "^2.58.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/troyswood/node-apis.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/troyswood/node-apis/issues"
+  },
+  "homepage": "https://github.com/troyswood/node-apis#readme"
+}

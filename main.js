@@ -1,19 +1,25 @@
 // must run the following:
 // npm install request
 // npm install MD5
+// npm install firebase
 // to test use:
 // curl localhost:8888/gravatarUrl/samer.buna@gmail.com
 // curl localhost:8888/Calc/4+5
 // curl localhost:8888/Counts/A%20Sentence%20here
 
 var fs = require("fs"),
-    http = require("http"),
-    request = require('request'),
-    url = require('url');
+  http = require("http"),
+  request = require('request'),
+  url = require('url'),
+  Calc = require('./calc'),
+  Firebase = require('firebase'),
+  md5 = require('MD5');
 
 http.createServer(responseHandler).listen(8888);
 
-var md5 = require('MD5');
+var fbRef = new Firebase("https://samer-node-testing.firebaseio.com/");
+var fbEntriesRef = fbRef.child("entries");
+var totalsRef = fbRef.child("totals");
 
 function responseHandler(req, res) {
   if (req.url.match("fav")) {
@@ -22,49 +28,37 @@ function responseHandler(req, res) {
   }
 
   if (req.url === "/") {
-  	res.end();
+    res.writeHead(200, {"Content-Type": "text/html"});
+    fs.readFile('index.html', 'utf8', function (err,data) {
+      res.end(data);
+    });
   } else {
-
-   switch(req.url.match(/\/(\w+)\/?(.+)?/i)[1]){
-  	case 'gravatarUrl':
-			res.writeHead(200, {"Content-Type": "text/plain"});
-			var gravEmail = req.url.match(/\/(\w+)\/?(.+)?/i)[2];
-			res.end('http://www.gravatar.com/avatar/'+ md5(gravEmail)+"\n") 
-			break;
-   	case 'Calc':
-   		res.writeHead(200, {"Content-Type": "text/plain"});
-			var mathProb = req.url.match(/\/(\w+)\/?(.+)?/i)[2];   	
-			var num1 = mathProb.match(/(\w)\/?/)[0];  
-			var oper = mathProb.match(/(\D)\/?/)[1];  
-			var num2 = mathProb.match(/(\w)\/?/)[1];  
-			switch(oper){
-				case '+':
-					var numRes = Number(num1) + Number(num2);
-					break;
-				case '-':
-					var numRes = Number(num1) - Number(num2);
-					break;
-				case '*':
-					var numRes = parseInt(num1) * parseInt(num2);
-					break;
-				case '/':				
-					var numRes = parseInt(num1) / parseInt(num2);
-					break;
-			}		
-			res.end(numRes+"\n");
-			break;
-		case 'Counts':
-			//console.log("got here!");
-			
-			res.end("got here"+"\n");
-		break;
-
-		//console.log("RESULT = " + numRes);
-  }
- // /Counts/A%20Sentence%20here
- // decodeURI("http://hello%20there.com")
-
+    var apiEndpoint = req.url.match(/\/(\w+)\/?(.+)?/i)[1];
+    var apiValue = req.url.match(/\/(\w+)\/?(.+)?/i)[2];
+    console.log(apiEndpoint, apiValue);
+    var apiResult;
+    res.writeHead(200, {"Content-Type": "text/plain"});
+    switch(apiEndpoint) {
+      case 'gravatarUrl':
+        apiResult = md5(apiValue);
+        res.end('http://www.gravatar.com/avatar/'+ apiResult+"\n")
+        break;
+      case 'Calc':
+        apiResult = Calc(apiValue);
+        res.end(apiResult+"\n");
+        break;
+    }
+    fbEntriesRef.push({
+      apiEndPoint: apiEndpoint,
+      apiValue: apiValue,
+      apiResult: apiResult,
+      timestamp: Firebase.ServerValue.TIMESTAMP,
+      ipAddress: req.connection.remoteAddress,
+      userAgent: req.headers['user-agent']
+    });
+    var useCounter = totalsRef.child(apiEndpoint);
+    useCounter.transaction(function (current_value) {
+      return (current_value || 0) + 1;
+    });
   }
 }
-
-
