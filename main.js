@@ -15,9 +15,9 @@ var fs = require("fs"),
   Firebase = require('firebase'),
   md5 = require('MD5');
 
-http.createServer(responseHandler).listen(8888);
+http.createServer(responseHandler).listen(process.env.PORT);
 
-var fbRef = new Firebase("https://samer-node-testing.firebaseio.com/");
+var fbRef = new Firebase(process.env.FB_URL);
 var fbEntriesRef = fbRef.child("entries");
 var totalsRef = fbRef.child("totals");
 
@@ -35,7 +35,6 @@ function responseHandler(req, res) {
   } else {
     var apiEndpoint = req.url.match(/\/(\w+)\/?(.+)?/i)[1];
     var apiValue = req.url.match(/\/(\w+)\/?(.+)?/i)[2];
-    console.log(apiEndpoint, apiValue);
     var apiResult;
     res.writeHead(200, {"Content-Type": "text/plain"});
     switch(apiEndpoint) {
@@ -47,7 +46,11 @@ function responseHandler(req, res) {
         apiResult = Calc(apiValue);
         res.end(apiResult+"\n");
         break;
+      default:
+        apiResult = null;
+        res.end();
     }
+
     fbEntriesRef.push({
       apiEndPoint: apiEndpoint,
       apiValue: apiValue,
