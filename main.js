@@ -40,7 +40,7 @@ function responseHandler(req, res) {
 					var numRes = Number(num1) + Number(num2);
 					break;
 				case '-':
-					var numRes = Number(num1) - (Number(num2));
+					var numRes = Number(num1) - Number(num2);
 					break;
 				case '*':
 					var numRes = Number(num1) * Number(num2);
